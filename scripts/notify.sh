@@ -28,7 +28,9 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 ccn_load_config
 
-# desligado?
+# desligado? sai antes de qualquer setup — isso inclui o auto-setup do lado
+# Windows (registro de AUMID/protocolo em ensure_setup), que fica pulado de
+# propósito enquanto CCN_ENABLED=0, diferente do antigo pre-gate incondicional.
 [ "${CCN_ENABLED:-1}" = "0" ] && exit 0
 
 ccn_parse_payload
