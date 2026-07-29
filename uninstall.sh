@@ -26,6 +26,7 @@ ok "Protocolo $PROTOCOL:// e AppID desregistrados"
 
 # remove script do hook (deixa a logo/handler no Windows; inofensivos)
 rm -f "$HOOKS_DIR/ccn-notify.sh" "$HOOKS_DIR/ccn.config"
+rm -rf "$HOOKS_DIR/lib" "$HOOKS_DIR/backends"
 ok "Scripts do hook removidos"
 
 echo; ok "Desinstalado. Abra /hooks ou reinicie o Claude Code para recarregar."
