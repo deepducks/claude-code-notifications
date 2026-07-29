@@ -26,8 +26,10 @@ LOGO_WIN="${WIN_DIR_WIN}\\claude-logo.png"      # mascote (corpo do toast)
 HEADER_WIN="${WIN_DIR_WIN}\\anthropic.png"      # logo Anthropic (ícone do AppID)
 
 # --- copia arquivos ----------------------------------------------------------
-mkdir -p "$HOOKS_DIR" "$WIN_DIR_WSL"
+mkdir -p "$HOOKS_DIR" "$WIN_DIR_WSL" "$HOOKS_DIR/lib" "$HOOKS_DIR/backends"
 install -m 0755 "$REPO_DIR/scripts/notify.sh" "$HOOKS_DIR/ccn-notify.sh"
+install -m 0644 "$REPO_DIR/scripts/lib/common.sh" "$HOOKS_DIR/lib/common.sh"
+install -m 0644 "$REPO_DIR/scripts/backends/windows.sh" "$HOOKS_DIR/backends/windows.sh"
 cp -f "$REPO_DIR/assets/claude-logo.png"  "$WIN_DIR_WSL/claude-logo.png"
 cp -f "$REPO_DIR/assets/anthropic.png"    "$WIN_DIR_WSL/anthropic.png"
 cp -f "$REPO_DIR/assets/sounds/Cloud.wav" "$WIN_DIR_WSL/Cloud.wav"
