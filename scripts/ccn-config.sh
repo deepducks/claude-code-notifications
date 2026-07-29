@@ -6,6 +6,10 @@ set -u
 CONFIG="${CCN_CONFIG:-$HOME/.claude/hooks/ccn.config}"
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+. "$DIR/lib/common.sh"
+
+PLATFORM="$(detect_platform)"
+
 set_kv() {
   touch "$CONFIG"
   grep -v "^$1=" "$CONFIG" > "$CONFIG.tmp" 2>/dev/null || true
@@ -20,7 +24,22 @@ unset_kv() {
 val() { [ -f "$CONFIG" ] && sed -n "s/^$1='\(.*\)'$/\1/p" "$CONFIG" | tail -1; }
 
 usage() {
-  cat <<'EOF'
+  if [ "$PLATFORM" = "macos" ]; then
+    cat <<'EOF'
+Uso: /ccn <comando>
+
+  status              mostra a configuração atual
+  on | off            liga/desliga as notificações
+  test                dispara uma notificação de teste
+  threshold <seg>     só notifica no Stop se a resposta demorou >= seg (0 = sempre)
+  duration on|off     mostra/oculta a duração no rodapé
+  buttons on|off      botões Sim / Sim sempre / Não no prompt de permissão
+  click on|off        clicar na notificação foca a aba/janela da sessão
+  sound <nome>        som: default | silent | im | mail | reminder | alarm | call
+  sound-file <path>   usa um arquivo de som próprio (.wav/.aiff/.m4a)
+EOF
+  else
+    cat <<'EOF'
 Uso: /ccn <comando>
 
   status              mostra a configuração atual
@@ -34,6 +53,7 @@ Uso: /ccn <comando>
                             ou um ms-winsoundevent:... completo
   sound-file <path>   usa um .wav próprio (caminho Windows ou WSL)
 EOF
+  fi
 }
 
 cmd="${1:-status}"
@@ -48,6 +68,7 @@ case "$cmd" in
     sf="$(val CCN_SOUND_FILE)"; se="$(val CCN_SOUND)"
     if [ -n "$sf" ]; then echo "  som:        arquivo $sf"
     elif [ -n "$se" ]; then echo "  som:        $se"
+    elif [ "$PLATFORM" = "macos" ]; then echo "  som:        padrão (Glass)"
     else echo "  som:        padrão (Cloud)"; fi
     ;;
   on)  unset_kv CCN_ENABLED; echo "Notificações ligadas." ;;
@@ -80,17 +101,30 @@ case "$cmd" in
     ;;
   sound)
     s="${2:-}"
-    case "$s" in
-      default)  unset_kv CCN_SOUND; unset_kv CCN_SOUND_FILE; echo "Som padrão restaurado." ;;
-      silent)   unset_kv CCN_SOUND_FILE; set_kv CCN_SOUND silent; echo "Som desativado (mudo)." ;;
-      im)       unset_kv CCN_SOUND_FILE; set_kv CCN_SOUND "ms-winsoundevent:Notification.IM"; echo "Som: IM." ;;
-      mail)     unset_kv CCN_SOUND_FILE; set_kv CCN_SOUND "ms-winsoundevent:Notification.Mail"; echo "Som: Mail." ;;
-      reminder) unset_kv CCN_SOUND_FILE; set_kv CCN_SOUND "ms-winsoundevent:Notification.Reminder"; echo "Som: Reminder." ;;
-      alarm)    unset_kv CCN_SOUND_FILE; set_kv CCN_SOUND "ms-winsoundevent:Notification.Looping.Alarm"; echo "Som: Alarm." ;;
-      call)     unset_kv CCN_SOUND_FILE; set_kv CCN_SOUND "ms-winsoundevent:Notification.Looping.Call"; echo "Som: Call." ;;
-      ms-winsoundevent:*) unset_kv CCN_SOUND_FILE; set_kv CCN_SOUND "$s"; echo "Som: $s." ;;
-      *) echo "Som desconhecido. Use: default, silent, im, mail, reminder, alarm, call, ou ms-winsoundevent:..."; exit 1 ;;
-    esac
+    if [ "$PLATFORM" = "macos" ]; then
+      case "$s" in
+        default)  unset_kv CCN_SOUND; unset_kv CCN_SOUND_FILE; echo "Som padrão restaurado." ;;
+        silent)   unset_kv CCN_SOUND_FILE; set_kv CCN_SOUND silent; echo "Som desativado (mudo)." ;;
+        im)       unset_kv CCN_SOUND_FILE; set_kv CCN_SOUND "Blow"; echo "Som: IM." ;;
+        mail)     unset_kv CCN_SOUND_FILE; set_kv CCN_SOUND "Ping"; echo "Som: Mail." ;;
+        reminder) unset_kv CCN_SOUND_FILE; set_kv CCN_SOUND "Hero"; echo "Som: Reminder." ;;
+        alarm)    unset_kv CCN_SOUND_FILE; set_kv CCN_SOUND "Sosumi"; echo "Som: Alarm." ;;
+        call)     unset_kv CCN_SOUND_FILE; set_kv CCN_SOUND "Funk"; echo "Som: Call." ;;
+        *) echo "Som desconhecido. Use: default, silent, im, mail, reminder, alarm, call"; exit 1 ;;
+      esac
+    else
+      case "$s" in
+        default)  unset_kv CCN_SOUND; unset_kv CCN_SOUND_FILE; echo "Som padrão restaurado." ;;
+        silent)   unset_kv CCN_SOUND_FILE; set_kv CCN_SOUND silent; echo "Som desativado (mudo)." ;;
+        im)       unset_kv CCN_SOUND_FILE; set_kv CCN_SOUND "ms-winsoundevent:Notification.IM"; echo "Som: IM." ;;
+        mail)     unset_kv CCN_SOUND_FILE; set_kv CCN_SOUND "ms-winsoundevent:Notification.Mail"; echo "Som: Mail." ;;
+        reminder) unset_kv CCN_SOUND_FILE; set_kv CCN_SOUND "ms-winsoundevent:Notification.Reminder"; echo "Som: Reminder." ;;
+        alarm)    unset_kv CCN_SOUND_FILE; set_kv CCN_SOUND "ms-winsoundevent:Notification.Looping.Alarm"; echo "Som: Alarm." ;;
+        call)     unset_kv CCN_SOUND_FILE; set_kv CCN_SOUND "ms-winsoundevent:Notification.Looping.Call"; echo "Som: Call." ;;
+        ms-winsoundevent:*) unset_kv CCN_SOUND_FILE; set_kv CCN_SOUND "$s"; echo "Som: $s." ;;
+        *) echo "Som desconhecido. Use: default, silent, im, mail, reminder, alarm, call, ou ms-winsoundevent:..."; exit 1 ;;
+      esac
+    fi
     ;;
   sound-file)
     f="${2:-}"; [ -z "$f" ] && { echo "Informe o caminho do .wav"; exit 1; }
