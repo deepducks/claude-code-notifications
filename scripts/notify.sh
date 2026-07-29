@@ -39,6 +39,10 @@ case "$(detect_platform)" in
     . "$here/backends/windows.sh"
     ccn_render_windows
     ;;
+  macos)
+    . "$here/backends/macos.sh"
+    ccn_render_macos
+    ;;
   *)
     exit 0
     ;;
