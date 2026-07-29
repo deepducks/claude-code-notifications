@@ -1,6 +1,6 @@
 {
   "name": "claude-code-notifications",
-  "description": "Notificações nativas do Windows para o Claude Code rodando no WSL — toast quando o Claude termina de responder ou aguarda você.",
+  "description": "Notificações nativas (Windows/WSL e macOS) para o Claude Code — toast quando o Claude termina de responder ou aguarda você.",
   "version": "1.7.0",
   "author": {
     "name": "Bryan Soares"
