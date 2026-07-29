@@ -29,7 +29,7 @@ ccn_load_config() {
 # Lê o payload do hook (stdin) + transcript e preenche o contrato consumido
 # pelos backends de render: EVENT, TITLE, BODY, FOOTER, TURN_SECS (e CWD).
 ccn_parse_payload() {
-  local start_ts se project branch max_len
+  local start_ts se ts_bsd project branch max_len
   payload="$(cat)"
   get() { printf '%s' "$payload" | jq -r "$1 // empty" 2>/dev/null; }
   EVENT="$(get '.hook_event_name')"
@@ -43,7 +43,11 @@ ccn_parse_payload() {
   if [ "$EVENT" != "Notification" ]; then
     start_ts="$(tjq '[.[] | select(.type=="user") | select((.message.content|tostring)|test("tool_result")|not) | .timestamp] | last // empty')"
     if [ -n "$start_ts" ]; then
-      se="$(date -d "$start_ts" +%s 2>/dev/null || true)"
+      # GNU `date -d` primeiro (Linux/WSL); no macOS (BSD date) cai no `-j -f`,
+      # que exige o timestamp sem fração de segundo nem sufixo `Z`.
+      ts_bsd="${start_ts%%.*}"; ts_bsd="${ts_bsd%Z}"
+      se="$(date -d "$start_ts" +%s 2>/dev/null \
+           || date -j -f '%Y-%m-%dT%H:%M:%S' "$ts_bsd" +%s 2>/dev/null || true)"
       [ -n "$se" ] && TURN_SECS=$(( $(date +%s) - se ))
       [ -n "$TURN_SECS" ] && [ "$TURN_SECS" -lt 0 ] && TURN_SECS=""
     fi
