@@ -69,6 +69,54 @@ Não use as duas formas ao mesmo tempo. Se instalou pelo `install.sh` e depois
 quer o plugin, rode `bash uninstall.sh` antes, para evitar notificação
 duplicada.
 
+## macOS
+
+Notificações nativas do macOS (Notification Center) para o Claude Code — o
+mesmo hook `Stop`/`Notification` usado no Windows/WSL, com um backend
+próprio para o macOS.
+
+### Requisitos
+
+- macOS
+- `jq` (`brew install jq`)
+- `terminal-notifier` (opcional, mas recomendado): `brew install
+  terminal-notifier`. Sem ele, a notificação cai para `osascript`/`display
+  notification` — ainda aparece, mas sem ícone próprio, imagem de conteúdo
+  (mascote), clique-para-focar nem som customizado.
+
+### Instalação
+
+No próprio Claude Code:
+
+```
+/plugin marketplace add blpsoares/claude-code-notifications
+/plugin install claude-code-notifications@blpsoares
+```
+
+O hook é registrado automaticamente (`hooks/hooks.json`), sem mexer no
+`settings.json`. Na primeira execução o script se auto-configura no lado
+macOS (copia mascote, logo e sons para `~/Library/Application
+Support/claude-code-notifications`).
+
+O instalador manual (`install.sh` na raiz do repo) hoje é específico para
+WSL; no macOS use a instalação via plugin acima.
+
+### Paridade de recursos
+
+A primeira iteração do macOS cobre toast, som, mascote/ícone e
+clique-para-focar. Ainda não tem os botões de resposta (Sim / Sim sempre /
+Não) do prompt de permissão que existem no Windows — `/ccn buttons` não tem
+efeito no macOS por enquanto.
+
+### Compatibilidade com terminais
+
+A notificação em si funciona com qualquer terminal que hospede a sessão. O
+clique-para-focar ativa o terminal dono da sessão (Wave Terminal, iTerm2, VS
+Code, Ghostty, etc.) por ativação genérica via bundle id. Seleção precisa de
+aba/janela pelo título da sessão só existe para Terminal.app e iTerm2 — os
+únicos cujos dicionários AppleScript expõem endereçamento por aba; nos
+demais terminais o clique traz a janela/app para frente, sem escolher a aba.
+
 ## Como funciona
 
 | Peça | Onde fica | Papel |
